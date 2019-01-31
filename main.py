@@ -4,6 +4,39 @@ import server
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+def servePacketWithDoubleThreadServer(server, pst, idle_time, t1_release_time, t2_release_time):
+    #  both threads free
+    if arrival_time >= t1_release_time and arrival_time >= t2_release_time:
+        if t1_release_time >= t2_release_time:
+            idle_time += (arrival_time - t1_release_time)
+        else:
+            idle_time += (arrival_time - t2_release_time)
+        t1_release_time = arrival_time + pst
+
+    #  only 1st thread free
+    elif arrival_time >= t1_release_time:
+        t1_release_time = arrival_time + pst
+        t2_release_time += (t2_release_time - arrival_time)  # sprawdzic czy zgadzaja sie formaty liczb +
+        if t1_release_time >= t2_release_time:
+            t1_release_time = t1_release_time - (t1_release_time - t2_release_time)
+        else:
+            t2_release_time = t2_release_time - (t2_release_time - t1_release_time)
+
+    #  only 2nd thread free
+    elif arrival_time >= t2_release_time:
+        t2_release_time = arrival_time + pst
+        t1_release_time = (t1_release_time - arrival_time) / 2  # sprawdzic czy zgadzaja sie formaty liczb +
+        if t1_release_time >= t2_release_time:
+            t1_release_time = t1_release_time - (t1_release_time - t2_release_time)
+        else:
+            t2_release_time = t2_release_time - (t2_release_time - t1_release_time)
+    else:
+        server.dropPacket()
+
+    return [idle_time, t1_release_time, t2_release_time]
+
+
 # CONFIGURATION
 AAP = [15, 25, 35, 45, 75, 150, 300]  # 1/LAMBDA - average arrival periods [ms]
 AST = 15  # 1/MI - average service time [ms]
@@ -13,6 +46,7 @@ NUMBER_OF_SERVERS = 2
 balancer = loadBalancer.LoadBalancer()
 aap_cases = []
 
+
 for i in range(len(AAP)):
     aap_cases.append(server.Server())
 
@@ -20,9 +54,6 @@ for i in range(len(AAP)):
 for i in range(NUMBER_OF_PACKETS):
     packet = ipPacket.Packet(i)
     balancer.packet_list.append(packet)
-
-
-
 
 aap_counter = 0
 server_worktime_list = []

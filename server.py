@@ -9,6 +9,7 @@ class Server:
 
     def dropPacket(self):
         self.packets_dropped += 1
+        print("Packet dropped.")
 
 """
     def startServingPacket(self):
