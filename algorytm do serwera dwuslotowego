@@ -1,6 +1,10 @@
 ##okej to ja tak to sobie wyobrażam: (s1, s2 to server_release_time dla poszczególnych slotów)
 if arrival_time >= s1 and arrival_time >= s2:  
     ##to co przed wpisaaniem nowego server_release_time
+    if s1 >= s2:
+        idle_time += (arrival_time - s1)
+    else:
+        idle_time += (arrival_time - s2)
     s1 = arrival_time + pst
 elif arrival_time >= s1:    
     ##to co przed wpisaaniem nowego server_release_time
