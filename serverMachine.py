@@ -30,6 +30,7 @@ class Server:
         self.idletime += (arrival_time - self.release_time_thread_1)
         self.release_time_thread_1 = arrival_time + pst
         self.packets_consumed_thread_1 += 1
+        self.worktime_thread_1 += pst
         return
 
     def servePacketWithDoubleThreadServer(self, arrival_time, pst):
@@ -39,33 +40,44 @@ class Server:
                 self.idletime += (arrival_time - self.release_time_thread_1)
             else:
                 self.idletime += (arrival_time - self.release_time_thread_2)
-            self.release_time_thread_1 = arrival_time + pst
+            self.release_time_thread_1 = arrival_time + pst / 2
             self.packets_consumed_thread_1 += 1
+            self.worktime_thread_1 += pst / 2
 
         #  only 1st thread free
         elif arrival_time >= self.release_time_thread_1:
+            initial_release_time_thread_1 = self.release_time_thread_1
             self.release_time_thread_1 = arrival_time + pst
-            self.release_time_thread_2 += (
-                        self.release_time_thread_2 - arrival_time)  # sprawdzic czy zgadzaja sie formaty liczb +
-            if self.release_time_thread_1 >= self.release_time_thread_2:
-                self.release_time_thread_1 = self.release_time_thread_1 - (
-                            self.release_time_thread_1 - self.release_time_thread_2)
+            if self.release_time_thread_2 >= self.release_time_thread_1:
+                self.release_time_thread_2 += (self.release_time_thread_1 - arrival_time) / 2
+
             else:
+                self.release_time_thread_2 += (self.release_time_thread_2 - arrival_time) / 2
+
+            if self.release_time_thread_2 >= self.release_time_thread_1:
                 self.release_time_thread_2 = self.release_time_thread_2 - (
-                            self.release_time_thread_2 - self.release_time_thread_1)
+                        self.release_time_thread_2 - self.release_time_thread_1) / 2
             self.packets_consumed_thread_1 += 1
+            self.worktime_thread_1 += (self.release_time_thread_1 - initial_release_time_thread_1)
 
         #  only 2nd thread free
         elif arrival_time >= self.release_time_thread_2:
+            initial_release_time_thread_2 = self.release_time_thread_2
             self.release_time_thread_2 = arrival_time + pst
-            self.release_time_thread_1 = (self.release_time_thread_1 - arrival_time) / 2  # sprawdzic czy zgadzaja sie formaty liczb +
+
+            if self.release_time_thread_1 >= self.release_time_thread_2:
+                self.release_time_thread_1 += (self.release_time_thread_2 - arrival_time) / 2
+
+            else:
+                self.release_time_thread_1 += (self.release_time_thread_1 - arrival_time) / 2
+
             if self.release_time_thread_1 >= self.release_time_thread_2:
                 self.release_time_thread_1 = self.release_time_thread_1 - (
-                            self.release_time_thread_1 - self.release_time_thread_2)
+                            self.release_time_thread_1 - self.release_time_thread_2) / 2
             else:
-                self.release_time_thread_2 = self.release_time_thread_2 - (
-                            self.release_time_thread_2 - self.release_time_thread_1)
+                self.release_time_thread_2 = self.release_time_thread_2 - (self.release_time_thread_2 - self.release_time_thread_1) / 2
             self.packets_consumed_thread_2 += 1
+            self.worktime_thread_2 += (self.release_time_thread_2 - initial_release_time_thread_2)
 
         else:
             return False
